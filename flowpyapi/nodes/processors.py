@@ -31,6 +31,27 @@ class ProcessorSetIndexNode(ProcessorNode):
         self.df = input_node.df.set_index(self.index_cols)
 
 
+class ProcessorComputeColumnNode(ProcessorNode):
+    _node_subtype = "compute_column"
+    _node_name = "Compute column"
+
+    def __init__(self, id: str, formula: str, target_name: str):
+        super().__init__(id)
+        self.formula = formula
+        self.target_name = target_name
+
+    def _exec_formula(self, df):
+        # TODO: Add validation for the formula string before running eval
+        try:
+            return df.eval(self.target_name + '=' + self.formula)
+        except Exception as e:
+            raise RuntimeError(e)
+
+    def _process(self, input_nodes: List[Node]):
+        # TODO: fix multiple input nodes instead of defaulting to first
+        input_node = input_nodes[0]
+        self.df = self._exec_formula(input_node.df)
+
 # class ProcessorSelectColumnsNode(ProcessorNode):
 #     _node_subtype = "select"
 #     _node_name = "Select Columns"
